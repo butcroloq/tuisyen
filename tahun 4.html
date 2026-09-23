@@ -130,8 +130,10 @@
       if(!APPS_SCRIPT_URL.startsWith('https://script.google.com/macros/s/')){els.emailStatus.style.color='var(--bad)';els.emailStatus.textContent='URL Apps Script belum dimasukkan oleh guru.';return;}
       els.emailBtn.disabled=true;els.emailStatus.style.color='var(--muted)';els.emailStatus.textContent='Sedang menghantar…';
       const r=state.result,form=document.createElement('form'),frame=document.createElement('iframe'),frameName='mailFrame'+Date.now();frame.name=frameName;frame.hidden=true;document.body.appendChild(frame);form.method='POST';form.action=APPS_SCRIPT_URL;form.target=frameName;form.hidden=true;
-      const payload={name:state.name,quiz:'Matematik Tahun 4',set:`Set ${state.set}`,score:r.correct,total:r.total,percent:r.percent,stars:r.stars,certificateData:r.percent>=80?certificateData():''};Object.entries(payload).forEach(([k,v])=>{const i=document.createElement('input');i.name=k;i.value=v;form.appendChild(i)});document.body.appendChild(form);form.submit();
-      setTimeout(()=>{els.emailBtn.disabled=false;els.emailStatus.style.color='var(--ok)';els.emailStatus.textContent='Keputusan telah dihantar kepada Sir Syah.';form.remove();frame.remove()},2500);
+      const payload={email:'butcroloq@gmail.com',name:state.name,quiz:'Matematik Tahun 4',set:`Set ${state.set}`,score:r.correct,total:r.total,percent:r.percent,stars:r.stars,certificateData:r.percent>=80?certificateData():''};Object.entries(payload).forEach(([k,v])=>{const i=document.createElement('input');i.name=k;i.value=v;form.appendChild(i)});document.body.appendChild(form);
+      let timer;const cleanup=()=>{clearTimeout(timer);window.removeEventListener('message',receive);form.remove();frame.remove();els.emailBtn.disabled=false};
+      const receive=event=>{if(event.source!==frame.contentWindow||!event.data||event.data.source!=='sirsyah-mail')return;const data=event.data;cleanup();els.emailStatus.style.color=data.ok?'var(--ok)':'var(--bad)';els.emailStatus.textContent=data.message||'Tiada maklum balas daripada sistem e-mel.'};
+      window.addEventListener('message',receive);form.submit();timer=setTimeout(()=>{cleanup();els.emailStatus.style.color='var(--bad)';els.emailStatus.textContent='Sistem tidak dapat mengesahkan penghantaran. Minta guru semak Apps Script.'},20000);
     });
     els.studentName.value=localStorage.getItem('sirSyahStudentName')||'';renderSets();
   </script>
