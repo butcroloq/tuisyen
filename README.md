@@ -1,2 +1,0 @@
-# tuisyen
-LATIHAN MT TUISYEN
